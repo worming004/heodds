@@ -7,7 +7,6 @@ toolchain go1.23.9
 require (
 	github.com/charmbracelet/bubbles v0.21.0
 	github.com/charmbracelet/bubbletea v1.3.5
-	github.com/lrstanley/bubblezone v1.0.0
 	github.com/whywaita/poker-go v0.0.0-20240128181615-ff338443efbd
 )
 
