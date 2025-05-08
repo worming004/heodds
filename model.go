@@ -139,6 +139,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.Y == 16 {
 				m.currentSelection = sr
 			}
+			if msg.Y == 17 {
+				m.currentSelection = sp11
+				m.ResetEquity()
+				m.h1[0] = UnknownCard.c
+				m.h1[1] = UnknownCard.c
+				m.h2[0] = UnknownCard.c
+				m.h2[1] = UnknownCard.c
+				m.flop[0] = UnknownCard.c
+				m.flop[1] = UnknownCard.c
+				m.flop[2] = UnknownCard.c
+				m.turn = UnknownCard.c
+				m.river = UnknownCard.c
+			}
 		}
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
@@ -330,6 +343,8 @@ func (m Model) View() string {
 	sb.WriteString(PokerCardString(m.river))
 	sb.WriteString("\x1b[0m")
 	sb.WriteString("\n")
+
+	sb.WriteString("|Reset|\n")
 
 	sb.WriteString("\x1b[38;5;88m") // red
 	sb.WriteString(m.errorMsg)
