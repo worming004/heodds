@@ -94,15 +94,15 @@ func (c Cards) GetCardByCoordinates(mouseMsg tea.MouseMsg) (bool, *Card) {
 // View implements tea.Model.
 func (c Cards) View() string {
 	sb := strings.Builder{}
-	isFirstLine := true
-	for i, card := range c.allCards {
-		if i%13 == 0 && !isFirstLine {
-			sb.WriteString("\n")
+	for row := range 4 {
+		for col := range 13 {
+			card := c.allCards[row*13+col]
+			sb.WriteString((card.String()))
+			sb.WriteString("  ")
 		}
-		sb.WriteString((card.String()))
-		sb.WriteString("  ")
-		isFirstLine = false
+		if row != 3 {
+		sb.WriteString("\n")
+		}
 	}
-
 	return sb.String()
 }
