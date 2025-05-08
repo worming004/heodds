@@ -2,22 +2,22 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/whywaita/poker-go"
+	tea "github.com/charmbracelet/bubbletea"
+
+	zone "github.com/lrstanley/bubblezone"
 )
 
-var allCards [52]poker.Card
-
 func init() {
-	newDeck := poker.NewDeck()
-	for i := range 52 {
-		allCards[i] = newDeck.DrawCard()
-	}
+	zone.NewGlobal()
 }
 
 func main() {
+	m := NewModel()
 
-	for _, c := range allCards {
-		fmt.Println(c)
+	if _, err := tea.NewProgram(m, tea.WithAltScreen(), tea.WithMouseCellMotion()).Run(); err != nil {
+		fmt.Println("error running program:", err)
+		os.Exit(1)
 	}
 }
