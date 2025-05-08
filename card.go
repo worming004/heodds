@@ -58,12 +58,3 @@ func SuitStringToUnicode(suit string) string {
 	return "[Unknown]"
 }
 
-func (c Card) Id() string {
-	pc := poker.Card(c.c)
-	return pc.Rank.String() + "_" + pc.Suit.String()
-}
-
-func (c Card) Title() string       { return c.String() }
-func (c Card) Description() string { return c.String() }
-
-func (c Card) FilterValue() string { return c.String() }

@@ -68,12 +68,6 @@ func (m *Model) SetPreviousSelection() {
 	m.currentSelection = m.currentSelection - 1
 }
 
-func removeCards(d *poker.Deck, count int) {
-	for range count {
-		d.DrawCard()
-	}
-}
-
 func NewModel() Model {
 	m := Model{}
 	m.Cards = NewCards()
@@ -96,8 +90,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.Cards.HasChanged() {
 		log.Println("card changed detected")
 		selectedCard := m.Cards.selectedCard
-		m.setCard(selectedCard)
-		m.resetEquity()
+		m.SetCard(selectedCard)
+		m.ResetEquity()
 	}
 
 	switch msg := msg.(type) {
@@ -173,7 +167,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) TriggerEvaluation() error {
-	err := m.ensureNoDuplicate()
+	err := m.EnsureNoDuplicate()
 	if err != nil {
 		return err
 	}
@@ -202,7 +196,7 @@ func (m *Model) TriggerEvaluation() error {
 	return nil
 }
 
-func (m *Model) setCard(c *Card) {
+func (m *Model) SetCard(c *Card) {
 	log.Println("setCard for selection:", c, m.currentSelection)
 	switch m.currentSelection {
 	case sp11:
@@ -344,12 +338,12 @@ func (m Model) View() string {
 	return sb.String()
 }
 
-func (m *Model) resetEquity() {
+func (m *Model) ResetEquity() {
 	m.equityj1 = 0
 	m.equityj2 = 0
 }
 
-func (m *Model) ensureNoDuplicate() error {
+func (m *Model) EnsureNoDuplicate() error {
 	for i, c := range m.All() {
 		for j, v := range m.All() {
 			if j <= i {

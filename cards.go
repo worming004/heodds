@@ -65,7 +65,7 @@ func (c *Cards) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (c Cards) GetCardByCoordinates(mouseMsg tea.MouseMsg) (bool, *Card) {
-	if mouseMsg.X >= 54 && mouseMsg.X <= 60 && mouseMsg.Y == 3 {
+	if mouseMsg.X >= 54 && mouseMsg.X <= 62 && mouseMsg.Y == 3 {
 		return true, UnknownCard
 	}
 	if mouseMsg.X < 0 {
@@ -110,6 +110,6 @@ func (c Cards) View() string {
 			sb.WriteString("\n")
 		}
 	}
-	sb.WriteString("  unknown")
+	sb.WriteString("  |unknown|")
 	return sb.String()
 }
