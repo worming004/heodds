@@ -12,6 +12,8 @@ var _ tea.Model = &Cards{}
 
 const spaceBetweenCardsWithContent = 4
 
+var UnknownCard = &Card{}
+
 type Cards struct {
 	allCards     []Card
 	hasChanged   bool
@@ -49,7 +51,8 @@ func (c *Cards) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.MouseMsg:
 		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
-			log.Println("Mouse clicked: %v, %v", msg.Action, msg.Button)
+			log.Printf("Mouse clicked: %v, %v\n", msg.Action, msg.Button)
+			log.Printf("Mouse coordinates: %v, %v\n", msg.X, msg.Y)
 			ok, card := c.GetCardByCoordinates(msg)
 			if ok {
 				c.hasChanged = true
@@ -62,6 +65,9 @@ func (c *Cards) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (c Cards) GetCardByCoordinates(mouseMsg tea.MouseMsg) (bool, *Card) {
+	if mouseMsg.X >= 54 && mouseMsg.X <= 60 && mouseMsg.Y == 3 {
+		return true, UnknownCard
+	}
 	if mouseMsg.X < 0 {
 		return false, nil
 	}
@@ -101,8 +107,9 @@ func (c Cards) View() string {
 			sb.WriteString("  ")
 		}
 		if row != 3 {
-		sb.WriteString("\n")
+			sb.WriteString("\n")
 		}
 	}
+	sb.WriteString("  unknown")
 	return sb.String()
 }
