@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
+	"iter"
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -27,6 +30,7 @@ type Model struct {
 	river poker.Card
 
 	currentSelection selection
+	errorMsg         string
 }
 
 func IsUnknownCard(c poker.Card) bool {
@@ -82,6 +86,8 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
+type ResetErrorMsg struct{}
+
 // Update implements tea.Model.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
@@ -95,11 +101,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+	case ResetErrorMsg:
+		m.errorMsg = ""
 	case tea.MouseMsg:
 		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
 			log.Printf("Mouse coordinates: %v, %v\n", msg.X, msg.Y)
 			if msg.Y == 4 && msg.X >= 21 && msg.X <= 25 {
-				m.TriggerEvaluation()
+				err := m.TriggerEvaluation()
+				if err != nil {
+					m.errorMsg = err.Error()
+					return m, func() tea.Msg {
+						time.Sleep(5 * time.Second)
+						return ResetErrorMsg{}
+					}
+				}
 			}
 			if msg.Y == 5 {
 				m.currentSelection = sp11
@@ -137,7 +152,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if msg.String() == "enter" {
-			m.TriggerEvaluation()
+			err := m.TriggerEvaluation()
+			if err != nil {
+				m.errorMsg = err.Error()
+				return m, func() tea.Msg {
+					time.Sleep(5 * time.Second)
+					return ResetErrorMsg{}
+				}
+			}
 		}
 		if msg.String() == "left" {
 			m.SetPreviousSelection()
@@ -150,7 +172,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *Model) TriggerEvaluation() {
+func (m *Model) TriggerEvaluation() error {
+	err := m.ensureNoDuplicate()
+	if err != nil {
+		return err
+	}
 	p1 := *poker.NewPlayer("Player 1", m.h1[:])
 	p2 := *poker.NewPlayer("Player 2", m.h2[:])
 
@@ -168,11 +194,12 @@ func (m *Model) TriggerEvaluation() {
 
 	res, err := poker.EvaluateEquityByMadeHandWithCommunity([]poker.Player{p1, p2}, community)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	m.equityj1 = res[0]
 	m.equityj2 = res[1]
 
+	return nil
 }
 
 func (m *Model) setCard(c *Card) {
@@ -310,10 +337,65 @@ func (m Model) View() string {
 	sb.WriteString("\x1b[0m")
 	sb.WriteString("\n")
 
+	sb.WriteString("\x1b[38;5;88m") // red
+	sb.WriteString(m.errorMsg)
+	sb.WriteString("\x1b[0m")
+
 	return sb.String()
 }
 
 func (m *Model) resetEquity() {
 	m.equityj1 = 0
 	m.equityj2 = 0
+}
+
+func (m *Model) ensureNoDuplicate() error {
+	for i, c := range m.All() {
+		for j, v := range m.All() {
+			if j <= i {
+				continue
+			}
+			if c == v && c != UnknownCard.c {
+				return errors.New("duplicate card detected: " + PokerCardString(c) + PokerCardString(v))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *Model) All() iter.Seq2[int, poker.Card] {
+	return func(yield func(int, poker.Card) bool) {
+		if !yield(0, m.h1[0]) {
+			return
+		}
+		if !yield(1, m.h1[1]) {
+			return
+		}
+
+		if !yield(2, m.h2[0]) {
+			return
+		}
+		if !yield(3, m.h2[1]) {
+			return
+		}
+
+		if !yield(4, m.flop[0]) {
+			return
+		}
+		if !yield(5, m.flop[1]) {
+			return
+		}
+		if !yield(6, m.flop[2]) {
+			return
+		}
+
+		if !yield(7, m.turn) {
+			return
+		}
+
+		if !yield(8, m.river) {
+			return
+		}
+	}
 }
